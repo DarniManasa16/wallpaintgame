@@ -1,0 +1,16 @@
+{
+  "name": "3d-wall-painting",
+  "version": "1.0.0",
+  "description": "3D Wall Painting Game",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "three": "^0.160.0"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0"
+  }
+} 

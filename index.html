@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kids Paint Party!</title>
+    <style>
+        :root {
+            --primary-color: #ff6b6b;
+            --secondary-color: #4ecdc4;
+            --accent-color: #ffe66d;
+            --dark-bg: #f7f7f7;
+            --light-text: #333333;
+            --neon-glow: 0 0 10px rgba(255, 107, 107, 0.7), 0 0 20px rgba(255, 107, 107, 0.5);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Comic Neue', sans-serif;
+            background-color: var(--dark-bg);
+            color: var(--light-text);
+            min-height: 100vh;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(255, 107, 107, 0.2) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(78, 205, 196, 0.2) 0%, transparent 20%);
+            overflow-x: hidden;
+        }
+
+        .game-container {
+            display: flex;
+            width: 100%;
+            max-width: 1200px;
+            margin: 20px auto;
+            gap: 20px;
+            padding: 0 20px;
+        }
+
+        .canvas-container {
+            flex: 3;
+            position: relative;
+        }
+
+        .game-ui {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            margin: 20px 0;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 0 var(--accent-color);
+            text-align: center;
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 1200px;
+            padding: 0 20px;
+            margin-bottom: 20px;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+        }
+
+        .player-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .player-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            border: 3px solid white;
+        }
+
+        .player-stats {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .player-name {
+            font-weight: bold;
+            font-size: 1.2rem;
+            color: var(--primary-color);
+        }
+
+        .player-score {
+            color: var(--secondary-color);
+            font-weight: 500;
+            font-size: 1.1rem;
+        }
+
+        .game-timer {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            text-shadow: 1px 1px 0 var(--accent-color);
+        }
+
+        .game-status {
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: var(--secondary-color);
+        }
+
+        canvas {
+            border: 5px solid white;
+            border-radius: 15px;
+            background-color: white;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            width: 100%;
+            height: 600px;
+        }
+
+        canvas:hover {
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+        }
+
+        .game-ui {
+            background-color: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border: 3px solid var(--accent-color);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-shadow: 1px 1px 0 var(--accent-color);
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .control-group label {
+            font-weight: 700;
+            color: var(--secondary-color);
+            font-size: 1.1rem;
+        }
+
+        .tools, .effects, .powerups {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        button {
+            padding: 12px 15px;
+            border: none;
+            border-radius: 12px;
+            background-color: var(--secondary-color);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 80px;
+            border: 3px solid white;
+            position: relative;
+            overflow: hidden;
+            font-size: 1.1rem;
+        }
+
+        button:hover {
+            background-color: var(--primary-color);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        button.active {
+            background-color: var(--primary-color);
+            border-color: var(--accent-color);
+            box-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
+        }
+
+        .tool-icon, .effect-icon, .powerup-icon {
+            margin-right: 8px;
+            font-size: 1.5rem;
+        }
+
+        input[type="color"] {
+            width: 100%;
+            height: 50px;
+            padding: 0;
+            border: 3px solid var(--accent-color);
+            border-radius: 12px;
+            cursor: pointer;
+            background-color: transparent;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 10px;
+            -webkit-appearance: none;
+            background: var(--secondary-color);
+            border-radius: 5px;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 3px solid white;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        .powerup {
+            position: relative;
+        }
+
+        .powerup-count {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background-color: var(--accent-color);
+            color: var(--light-text);
+            font-weight: bold;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            border: 2px solid white;
+        }
+
+        .players-list {
+            margin-top: 20px;
+            max-height: 200px;
+            overflow-y: auto;
+            border-radius: 12px;
+            background-color: rgba(78, 205, 196, 0.1);
+            padding: 10px;
+            border: 3px dashed var(--secondary-color);
+        }
+
+        .player-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            background-color: white;
+            border: 2px solid var(--secondary-color);
+        }
+
+        .player-item-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--secondary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            border: 2px solid white;
+        }
+
+        .player-item-name {
+            flex: 1;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .player-item-score {
+            color: var(--secondary-color);
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .game-message {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--primary-color);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 30px;
+            font-weight: bold;
+            font-size: 1.5rem;
+            z-index: 100;
+            box-shadow: 0 0 20px rgba(255, 107, 107, 0.5);
+            animation: bounceIn 0.5s forwards;
+        }
+
+        @keyframes bounceIn {
+            0% { opacity: 0; transform: translate(-50%, -50px); }
+            50% { transform: translate(-50%, 10px); }
+            100% { opacity: 1; transform: translate(-50%, 0); }
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 20px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            border: 5px solid var(--accent-color);
+            box-shadow: 0 0 30px rgba(255, 230, 109, 0.5);
+        }
+
+        .modal-title {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            color: var(--primary-color);
+            text-shadow: 2px 2px 0 var(--accent-color);
+        }
+
+        .modal-text {
+            margin-bottom: 30px;
+            line-height: 1.6;
+            font-size: 1.3rem;
+        }
+
+        .modal-button {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.3rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            border: 3px solid white;
+        }
+
+        .modal-button:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .game-mode {
+            display: flex;
+            gap: 10px;
+            margin: 0 20px;
+        }
+
+        .mode-button {
+            background: var(--secondary-color);
+            border: 3px solid white;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .mode-button:hover {
+            background: var(--primary-color);
+            transform: translateY(-3px);
+        }
+
+        .mode-button.active {
+            background: var(--primary-color);
+            border-color: var(--accent-color);
+            box-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
+        }
+
+        .player-item.active-turn {
+            background: rgba(255, 107, 107, 0.2);
+            border-left: 5px solid var(--primary-color);
+        }
+        
+        .character-select {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .character {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 3px solid white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .character:hover {
+            transform: scale(1.1);
+        }
+        
+        .character.selected {
+            border: 5px solid var(--accent-color);
+            box-shadow: 0 0 15px rgba(255, 230, 109, 0.7);
+        }
+        
+        .character-1 {
+            background-color: #ff6b6b;
+        }
+        
+        .character-2 {
+            background-color: #4ecdc4;
+        }
+        
+        .character-3 {
+            background-color: #ffe66d;
+        }
+        
+        .character-4 {
+            background-color: #a78bfa;
+        }
+        
+        .character-5 {
+            background-color: #ff9f43;
+        }
+        
+        .character-6 {
+            background-color: #54a0ff;
+        }
+        
+        /* New styles for achievements */
+        .achievements {
+            margin-top: 20px;
+            border-radius: 12px;
+            background-color: rgba(255, 230, 109, 0.1);
+            padding: 15px;
+            border: 3px dashed var(--accent-color);
+        }
+        
+        .achievement {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            background-color: white;
+            border: 2px solid var(--accent-color);
+            transition: all 0.3s ease;
+        }
+        
+        .achievement.locked {
+            opacity: 0.5;
+        }
+        
+        .achievement-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--accent-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            border: 2px solid white;
+        }
+        
+        .achievement-info {
+            flex: 1;
+        }
+        
+        .achievement-name {
+            font-weight: 700;
+            color: var(--primary-color);
+            font-size: 1rem;
+        }
+        
+        .achievement-desc {
+            color: var(--secondary-color);
+            font-size: 0.9rem;
+        }
+        
+        /* Sound controls */
+        .sound-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .sound-toggle {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--secondary-color);
+            transition: all 0.3s ease;
+        }
+        
+        .sound-toggle:hover {
+            color: var(--primary-color);
+            transform: scale(1.1);
+        }
+        
+        /* Challenge mode */
+        .challenge-container {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: var(--secondary-color);
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .challenge-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #a78bfa;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        .challenge-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .challenge-item {
+            padding: 10px;
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+        
+        .challenge-item:hover {
+            transform: scale(1.05);
+            background-color: var(--accent-color);
+        }
+        
+        .challenge-item.active {
+            background-color: rgba(167, 139, 250, 0.2);
+            border-color: #a78bfa;
+            box-shadow: 0 0 10px rgba(167, 139, 250, 0.3);
+        }
+        
+        /* Sample image viewer */
+        .sample-image-container {
+            margin-top: 20px;
+            border-radius: 12px;
+            background-color: rgba(255, 230, 109, 0.1);
+            padding: 15px;
+            border: 3px dashed var(--accent-color);
+            display: none;
+        }
+        
+        .sample-image-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--accent-color);
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        .sample-image {
+            width: 100%;
+            max-width: 300px;
+            height: auto;
+            border-radius: 8px;
+            border: 3px solid white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin: 0 auto;
+            display: block;
+        }
+        
+        .sample-image-controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .sample-image-button {
+            background: var(--accent-color);
+            border: 2px solid white;
+            color: var(--light-text);
+            padding: 5px 10px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+        
+        .sample-image-button:hover {
+            background: var(--primary-color);
+            transform: translateY(-2px);
+        }
+
+        .sample-image-viewer {
+            margin-top: 10px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: var(--accent-color);
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border: 3px solid white;
+            transition: all 0.3s ease;
+        }
+
+        .sample-image-viewer h3 {
+            color: var(--primary-color);
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            text-align: center;
+            text-shadow: 1px 1px 0 white;
+        }
+
+        .sample-image-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            min-height: 200px;
+            position: relative;
+        }
+
+        #sampleImage {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            border: 3px solid white;
+            background-color: white;
+            padding: 5px;
+            transition: opacity 0.3s ease;
+            opacity: 1;
+        }
+
+        #sampleImage.loading {
+            opacity: 0.5;
+        }
+
+        .sample-image-controls {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .sample-image-button {
+            padding: 10px 20px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            font-size: 1.1rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .sample-image-button:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .sample-image-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .drawing-score {
+            margin-top: 15px;
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            text-shadow: 1px 1px 0 white;
+            min-height: 24px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Kids Paint Party!</h1>
+    
+    <div class="character-select">
+        <div class="character character-1 selected" data-character="1">🐰</div>
+        <div class="character character-2" data-character="2">🐼</div>
+        <div class="character character-3" data-character="3">🦊</div>
+        <div class="character character-4" data-character="4">🦄</div>
+        <div class="character character-5" data-character="5">🐯</div>
+        <div class="character character-6" data-character="6">🐬</div>
+    </div>
+    
+    <div class="game-header">
+        <div class="game-title">Kids Paint Party!</div>
+        <div class="game-mode">
+            <button class="mode-button active" onclick="setGameMode('turn-based')">Take Turns</button>
+            <button class="mode-button" onclick="setGameMode('simultaneous')">All Paint Together</button>
+            <button class="mode-button" onclick="setGameMode('free-paint')">Free Paint</button>
+        </div>
+        <div class="player-info">
+            <div class="player-avatar">🐰</div>
+            <div class="player-stats">
+                <div class="player-name">Bunny</div>
+                <div class="player-score">Stars: 0</div>
+            </div>
+        </div>
+        <div class="game-timer">03:00</div>
+        <div class="game-status">Let's Paint!</div>
+    </div>
+
+    <div class="game-container">
+        <div class="canvas-container">
+            <canvas id="canvas" width="800" height="600"></canvas>
+        </div>
+        
+        <div class="game-ui">
+            <div class="section-title">Sample Images</div>
+            <div class="sample-image-viewer">
+                <h3>Draw This!</h3>
+                <div class="sample-image-container">
+                    <img id="sampleImage" src="" alt="Sample Image">
+                    <div class="sample-image-controls">
+                        <button id="prevImageButton" class="sample-image-button">Previous</button>
+                        <button id="nextImageButton" class="sample-image-button">Next</button>
+                        <button id="checkDrawingButton" class="sample-image-button">Check Drawing</button>
+                    </div>
+                </div>
+                <div id="drawingScore" class="drawing-score"></div>
+            </div>
+
+            <div class="section-title">Paint Tools</div>
+            <div class="tools">
+                <button class="tool-button active" data-tool="brush">
+                    <span class="tool-icon">🖌️</span> Brush
+                </button>
+                <button class="tool-button" data-tool="spray">
+                    <span class="tool-icon">💨</span> Spray
+                </button>
+                <button class="tool-button" data-tool="eraser">
+                    <span class="tool-icon">🧹</span> Eraser
+                </button>
+                <button class="tool-button" data-tool="fill">
+                    <span class="tool-icon">🪣</span> Fill
+                </button>
+            </div>
+
+            <div class="section-title">Colors & Size</div>
+            <div class="control-group">
+                <label for="colorPicker">Pick a Color:</label>
+                <input type="color" id="colorPicker" value="#ff6b6b">
+            </div>
+
+            <div class="control-group">
+                <label for="brushSize">Brush Size:</label>
+                <input type="range" id="brushSize" min="1" max="50" value="10">
+            </div>
+
+            <div class="section-title">Magic Powers</div>
+            <div class="powerups">
+                <button class="powerup" data-powerup="rainbow">
+                    <span class="powerup-icon">🌈</span> Rainbow
+                    <span class="powerup-count">3</span>
+                </button>
+                <button class="powerup" data-powerup="mirror">
+                    <span class="powerup-icon">🪞</span> Mirror
+                    <span class="powerup-count">2</span>
+                </button>
+                <button class="powerup" data-powerup="symmetry">
+                    <span class="powerup-icon">🔄</span> Symmetry
+                    <span class="powerup-count">1</span>
+                </button>
+                <button class="powerup" data-powerup="time">
+                    <span class="powerup-icon">⏱️</span> Extra Time
+                    <span class="powerup-count">1</span>
+                </button>
+            </div>
+
+            <div class="section-title">Friends</div>
+            <div class="players-list">
+                <div class="player-item">
+                    <div class="player-item-avatar">🐰</div>
+                    <div class="player-item-name">Bunny</div>
+                    <div class="player-item-score">0</div>
+                </div>
+                <div class="player-item">
+                    <div class="player-item-avatar">🐼</div>
+                    <div class="player-item-name">Panda</div>
+                    <div class="player-item-score">0</div>
+                </div>
+                <div class="player-item">
+                    <div class="player-item-avatar">🦊</div>
+                    <div class="player-item-name">Fox</div>
+                    <div class="player-item-score">0</div>
+                </div>
+            </div>
+
+            <div class="section-title">Achievements</div>
+            <div class="achievements">
+                <div class="achievement" data-achievement="first-star">
+                    <div class="achievement-icon">⭐</div>
+                    <div class="achievement-info">
+                        <div class="achievement-name">First Star</div>
+                        <div class="achievement-desc">Earn your first star</div>
+                    </div>
+                </div>
+                <div class="achievement locked" data-achievement="rainbow-master">
+                    <div class="achievement-icon">🌈</div>
+                    <div class="achievement-info">
+                        <div class="achievement-name">Rainbow Master</div>
+                        <div class="achievement-desc">Use all rainbow power-ups</div>
+                    </div>
+                </div>
+                <div class="achievement locked" data-achievement="speed-painter">
+                    <div class="achievement-icon">⚡</div>
+                    <div class="achievement-info">
+                        <div class="achievement-name">Speed Painter</div>
+                        <div class="achievement-desc">Get a 10x combo</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-title">Challenges</div>
+            <div class="challenge-container">
+                <h3>Drawing Challenges</h3>
+                <div class="challenge-list">
+                    <div class="challenge-item" data-challenge="house">Draw a House</div>
+                    <div class="challenge-item" data-challenge="tree">Draw a Tree</div>
+                    <div class="challenge-item" data-challenge="sun">Draw a Sun</div>
+                    <div class="challenge-item" data-challenge="flower">Draw a Flower</div>
+                    <div class="challenge-item" data-challenge="cat">Draw a Cat</div>
+                    <div class="challenge-item" data-challenge="dog">Draw a Dog</div>
+                    <div class="challenge-item" data-challenge="bird">Draw a Bird</div>
+                    <div class="challenge-item" data-challenge="fish">Draw a Fish</div>
+                    <div class="challenge-item" data-challenge="car">Draw a Car</div>
+                    <div class="challenge-item" data-challenge="boat">Draw a Boat</div>
+                    <div class="challenge-item" data-challenge="rainbow">Draw a Rainbow</div>
+                    <div class="challenge-item" data-challenge="star">Draw a Star</div>
+                    <div class="challenge-item" data-challenge="heart">Draw a Heart</div>
+                    <div class="challenge-item" data-challenge="butterfly">Draw a Butterfly</div>
+                    <div class="challenge-item" data-challenge="robot">Draw a Robot</div>
+                    <div class="challenge-item" data-challenge="unicorn">Draw a Unicorn</div>
+                    <div class="challenge-item" data-challenge="dragon">Draw a Dragon</div>
+                    <div class="challenge-item" data-challenge="castle">Draw a Castle</div>
+                    <div class="challenge-item" data-challenge="forest">Draw a Forest</div>
+                    <div class="challenge-item" data-challenge="ocean">Draw an Ocean</div>
+                </div>
+            </div>
+            
+            <div class="sound-controls">
+                <span>Sound:</span>
+                <button class="sound-toggle" id="soundToggle">🔊</button>
+            </div>
+
+            <button id="clearButton">Clear Canvas</button>
+            <button id="saveButton">Save My Art</button>
+        </div>
+    </div>
+
+    <div id="gameMessage" class="game-message hidden">Let's start painting in 3...</div>
+
+    <div id="gameOverModal" class="modal hidden">
+        <div class="modal-content">
+            <h2 class="modal-title">Great Job!</h2>
+            <p class="modal-text">Bunny wins with 120 stars! 🎉</p>
+            <button class="modal-button" id="playAgainButton">Play Again</button>
+        </div>
+    </div>
+
+    <div id="achievementModal" class="modal hidden">
+        <div class="modal-content">
+            <h2 class="modal-title">Achievement Unlocked!</h2>
+            <p class="modal-text" id="achievementText">You earned your first star! ⭐</p>
+            <button class="modal-button" id="achievementCloseButton">Awesome!</button>
+        </div>
+    </div>
+
+    <!-- Audio elements for sound effects -->
+    <audio id="brushSound" src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3" preload="auto"></audio>
+    <audio id="spraySound" src="https://assets.mixkit.co/active_storage/sfx/2572/2572-preview.mp3" preload="auto"></audio>
+    <audio id="eraserSound" src="https://assets.mixkit.co/active_storage/sfx/2573/2573-preview.mp3" preload="auto"></audio>
+    <audio id="fillSound" src="https://assets.mixkit.co/active_storage/sfx/2574/2574-preview.mp3" preload="auto"></audio>
+    <audio id="powerupSound" src="https://assets.mixkit.co/active_storage/sfx/2575/2575-preview.mp3" preload="auto"></audio>
+    <audio id="achievementSound" src="https://assets.mixkit.co/active_storage/sfx/2576/2576-preview.mp3" preload="auto"></audio>
+    <audio id="gameOverSound" src="https://assets.mixkit.co/active_storage/sfx/2577/2577-preview.mp3" preload="auto"></audio>
+
+    <script src="game.js"></script>
+</body>
+</html> 
